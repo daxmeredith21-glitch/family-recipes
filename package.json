@@ -12,5 +12,6 @@
   },
   "devDependencies": {
     "vite": "^5.0.0"
-  }
+  },
+  "_deployed": "with-seed-api"
 }
