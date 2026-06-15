@@ -13,8 +13,17 @@ export function renderAdd() {
     <div id="errorBanner" class="error-banner"></div>
 
     <div class="form-section">
-      <label class="form-label">Your name</label>
-      <input class="form-input" id="f_name" type="text" placeholder="e.g. Grandma Rose" autocomplete="name">
+      <div class="two-col">
+        <div>
+          <label class="form-label">Your name</label>
+          <input class="form-input" id="f_name" type="text" placeholder="e.g. Grandma Rose" autocomplete="name">
+        </div>
+        <div>
+          <label class="form-label">Initials</label>
+          <input class="form-input" id="f_initials" type="text" placeholder="e.g. DAM" maxlength="3" style="text-transform:uppercase">
+        </div>
+      </div>
+      <p class="form-hint">3 letters — shown on the recipe card so the family knows who shared it</p>
     </div>
 
     <div class="form-section">
@@ -115,6 +124,7 @@ function addStepField() {
 
 async function handleSubmit(onSubmit) {
   const name = document.getElementById('f_name').value.trim()
+  const initials = document.getElementById('f_initials').value.trim().toUpperCase()
   const title = document.getElementById('f_title').value.trim()
   const cat = document.getElementById('f_cat').value
   const errorBanner = document.getElementById('errorBanner')
@@ -123,6 +133,13 @@ async function handleSubmit(onSubmit) {
 
   if (!name || !title || !cat) {
     errorBanner.textContent = 'Please fill in your name, the recipe name, and a category.'
+    errorBanner.style.display = 'block'
+    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return
+  }
+
+  if (!/^[A-Za-z]{3}$/.test(initials)) {
+    errorBanner.textContent = 'Please enter exactly 3 letters for your initials (e.g. DAM).'
     errorBanner.style.display = 'block'
     errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
@@ -145,6 +162,7 @@ async function handleSubmit(onSubmit) {
     title,
     category: cat,
     submitted_by: name,
+    initials,
     serves: document.getElementById('f_serves').value.trim(),
     time: document.getElementById('f_time').value.trim(),
     ingredients,
@@ -161,6 +179,7 @@ async function handleSubmit(onSubmit) {
     document.getElementById('successBanner').style.display = 'block'
     // Reset form
     document.getElementById('f_name').value = ''
+    document.getElementById('f_initials').value = ''
     document.getElementById('f_title').value = ''
     document.getElementById('f_cat').value = ''
     document.getElementById('f_serves').value = ''

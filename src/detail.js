@@ -12,9 +12,12 @@ export function renderDetail(recipe) {
     </button>
 
     <div class="recipe-header">
-      <span class="recipe-cat-badge" style="background:${catColor};color:#333">
-        ${icon} ${recipe.category}
-      </span>
+      <div class="recipe-badges-row">
+        <span class="recipe-cat-badge" style="background:${catColor};color:#333">
+          ${icon} ${recipe.category}
+        </span>
+        ${recipe.initials ? `<span class="recipe-initials-badge">${recipe.initials.toUpperCase()}</span>` : ''}
+      </div>
       <h1 class="recipe-title">${recipe.title}</h1>
       <div class="recipe-meta-row">
         ${recipe.serves ? `<span class="recipe-meta-item"><i class="ti ti-users" style="font-size:15px"></i> ${recipe.serves}</span>` : ''}

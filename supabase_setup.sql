@@ -6,6 +6,7 @@ create table recipes (
   title text not null,
   category text not null,
   submitted_by text not null,
+  initials text not null default 'DAM',
   serves text,
   time text,
   ingredients jsonb default '[]',

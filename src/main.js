@@ -10,6 +10,8 @@ const state = {
   recipes: [],
   loading: true,
   activeCategory: 'All',
+  activeInitials: 'All',
+  sortBy: 'recent',      // 'recent' | 'az'
   searchQuery: '',
   currentRecipe: null,
 }
@@ -26,6 +28,21 @@ function render() {
     </main>
   `
   attachListeners()
+}
+
+// Re-render only the home content (used for filters/sort/search so the
+// nav bar doesn't flicker and scroll position is preserved)
+function renderHomeContent() {
+  const main = document.getElementById('mainContent')
+  if (!main) return
+  main.innerHTML = renderHome({
+    recipes: state.recipes,
+    activeCategory: state.activeCategory,
+    activeInitials: state.activeInitials,
+    sortBy: state.sortBy,
+    searchQuery: state.searchQuery,
+  })
+  attachHomeListeners()
 }
 
 function renderNav() {
@@ -49,6 +66,8 @@ function renderScreen() {
     return renderHome({
       recipes: state.recipes,
       activeCategory: state.activeCategory,
+      activeInitials: state.activeInitials,
+      sortBy: state.sortBy,
       searchQuery: state.searchQuery,
     })
   }
@@ -81,21 +100,6 @@ function attachListeners() {
 
   // Home screen
   if (state.screen === 'home') {
-    // Search
-    document.getElementById('searchInput')?.addEventListener('input', e => {
-      state.searchQuery = e.target.value
-      // Re-render just the list portion without full redraw for smoothness
-      const main = document.getElementById('mainContent')
-      if (main) {
-        main.innerHTML = renderHome({
-          recipes: state.recipes,
-          activeCategory: state.activeCategory,
-          searchQuery: state.searchQuery,
-        })
-        attachHomeListeners()
-      }
-    })
-
     attachHomeListeners()
   }
 
@@ -114,19 +118,40 @@ function attachListeners() {
 }
 
 function attachHomeListeners() {
+  // Search
+  document.getElementById('searchInput')?.addEventListener('input', e => {
+    state.searchQuery = e.target.value
+    renderHomeContent()
+    // Restore focus + cursor position after re-render
+    const input = document.getElementById('searchInput')
+    if (input) {
+      input.focus()
+      const val = input.value
+      input.setSelectionRange(val.length, val.length)
+    }
+  })
+
   // Category pills
-  document.querySelectorAll('.cat-pill').forEach(btn => {
+  document.querySelectorAll('#catStrip .cat-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       state.activeCategory = btn.dataset.cat
-      const main = document.getElementById('mainContent')
-      if (main) {
-        main.innerHTML = renderHome({
-          recipes: state.recipes,
-          activeCategory: state.activeCategory,
-          searchQuery: state.searchQuery,
-        })
-        attachHomeListeners()
-      }
+      renderHomeContent()
+    })
+  })
+
+  // Initials pills
+  document.querySelectorAll('#initStrip .cat-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.activeInitials = btn.dataset.init
+      renderHomeContent()
+    })
+  })
+
+  // Sort toggle
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.sortBy = btn.dataset.sort
+      renderHomeContent()
     })
   })
 
@@ -142,20 +167,6 @@ function attachHomeListeners() {
         window.scrollTo(0, 0)
       }
     })
-  })
-
-  // Re-attach search listener after partial re-render
-  document.getElementById('searchInput')?.addEventListener('input', e => {
-    state.searchQuery = e.target.value
-    const main = document.getElementById('mainContent')
-    if (main) {
-      main.innerHTML = renderHome({
-        recipes: state.recipes,
-        activeCategory: state.activeCategory,
-        searchQuery: state.searchQuery,
-      })
-      attachHomeListeners()
-    }
   })
 }
 

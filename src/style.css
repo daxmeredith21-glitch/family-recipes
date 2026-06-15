@@ -117,6 +117,15 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
   pointer-events: none;
 }
 
+.filter-row-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
 .cat-strip {
   display: flex;
   gap: 8px;
@@ -157,6 +166,41 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
   margin-bottom: 10px;
 }
 
+.sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.sort-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--warm);
+  border-radius: 20px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.sort-btn {
+  border: none;
+  background: none;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sort-btn.active {
+  background: var(--navy);
+  color: #fff;
+}
+
 .recipe-list { display: flex; flex-direction: column; gap: 10px; }
 
 .recipe-card {
@@ -181,6 +225,11 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
 
 .recipe-card:active { transform: scale(0.99); }
 
+.rc-icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .rc-icon {
   width: 46px;
   height: 46px;
@@ -190,6 +239,21 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
   justify-content: center;
   font-size: 22px;
   flex-shrink: 0;
+}
+
+.rc-initials {
+  position: absolute;
+  bottom: -6px;
+  right: -8px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  line-height: 1.2;
+  border: 1.5px solid var(--cream);
 }
 
 .rc-body { flex: 1; min-width: 0; }
@@ -239,6 +303,29 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
+}
+
+.recipe-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recipe-badges-row .recipe-cat-badge {
+  margin-bottom: 10px;
+}
+
+.recipe-initials-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  background: var(--navy);
+  color: #fff;
 }
 
 .recipe-title {
