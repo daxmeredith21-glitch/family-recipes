@@ -7,9 +7,14 @@ export function renderDetail(recipe) {
   const steps = recipe.steps || []
 
   return `
-    <button class="back-btn" id="backBtn">
-      <i class="ti ti-arrow-left"></i> Back
-    </button>
+    <div class="detail-top-bar">
+      <button class="back-btn" id="backBtn">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <button class="edit-btn" id="editBtn">
+        <i class="ti ti-pencil"></i> Edit
+      </button>
+    </div>
 
     <div class="recipe-header">
       <div class="recipe-badges-row">

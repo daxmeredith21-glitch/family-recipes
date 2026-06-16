@@ -3,20 +3,20 @@ import { supabase } from './supabase.js'
 import { renderHome } from './home.js'
 import { renderDetail } from './detail.js'
 import { renderAdd, initAddForm } from './add.js'
+import { renderEdit, initEditForm } from './edit.js'
 
 // ── State ──────────────────────────────────────────────────────────────────
 const state = {
-  screen: 'home',       // 'home' | 'detail' | 'add'
+  screen: 'home',       // 'home' | 'detail' | 'add' | 'edit'
   recipes: [],
   loading: true,
   activeCategory: 'All',
   activeInitials: 'All',
-  sortBy: 'recent',      // 'recent' | 'az'
+  sortBy: 'recent',
   searchQuery: '',
   currentRecipe: null,
 }
 
-// ── Root element ───────────────────────────────────────────────────────────
 const app = document.getElementById('app')
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -30,8 +30,6 @@ function render() {
   attachListeners()
 }
 
-// Re-render only the home content (used for filters/sort/search so the
-// nav bar doesn't flicker and scroll position is preserved)
 function renderHomeContent() {
   const main = document.getElementById('mainContent')
   if (!main) return
@@ -61,7 +59,6 @@ function renderScreen() {
   if (state.loading) {
     return `<div class="loading"><div class="spinner"></div>Loading recipes...</div>`
   }
-
   if (state.screen === 'home') {
     return renderHome({
       recipes: state.recipes,
@@ -71,21 +68,20 @@ function renderScreen() {
       searchQuery: state.searchQuery,
     })
   }
-
   if (state.screen === 'detail' && state.currentRecipe) {
     return renderDetail(state.currentRecipe)
   }
-
+  if (state.screen === 'edit' && state.currentRecipe) {
+    return renderEdit(state.currentRecipe)
+  }
   if (state.screen === 'add') {
     return renderAdd()
   }
-
   return ''
 }
 
-// ── Event listeners ────────────────────────────────────────────────────────
+// ── Listeners ──────────────────────────────────────────────────────────────
 function attachListeners() {
-  // Nav
   document.getElementById('navBrowse')?.addEventListener('click', () => {
     state.screen = 'home'
     render()
@@ -98,18 +94,39 @@ function attachListeners() {
     window.scrollTo(0, 0)
   })
 
-  // Home screen
-  if (state.screen === 'home') {
-    attachHomeListeners()
-  }
+  if (state.screen === 'home') attachHomeListeners()
 
-  // Detail screen
+  // Detail
   document.getElementById('backBtn')?.addEventListener('click', () => {
     state.screen = 'home'
     render()
   })
+  document.getElementById('editBtn')?.addEventListener('click', () => {
+    state.screen = 'edit'
+    render()
+    window.scrollTo(0, 0)
+  })
 
-  // Add screen
+  // Edit
+  if (state.screen === 'edit' && state.currentRecipe) {
+    initEditForm(
+      state.currentRecipe,
+      async (id, updates) => {
+        await updateRecipe(id, updates)
+      },
+      async (id) => {
+        await deleteRecipe(id)
+        state.screen = 'home'
+        render()
+      },
+      () => {
+        state.screen = 'detail'
+        render()
+      }
+    )
+  }
+
+  // Add
   if (state.screen === 'add') {
     initAddForm(async (recipe) => {
       await addRecipe(recipe)
@@ -118,11 +135,9 @@ function attachListeners() {
 }
 
 function attachHomeListeners() {
-  // Search
   document.getElementById('searchInput')?.addEventListener('input', e => {
     state.searchQuery = e.target.value
     renderHomeContent()
-    // Restore focus + cursor position after re-render
     const input = document.getElementById('searchInput')
     if (input) {
       input.focus()
@@ -131,7 +146,6 @@ function attachHomeListeners() {
     }
   })
 
-  // Category pills
   document.querySelectorAll('#catStrip .cat-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       state.activeCategory = btn.dataset.cat
@@ -139,7 +153,6 @@ function attachHomeListeners() {
     })
   })
 
-  // Initials pills
   document.querySelectorAll('#initStrip .cat-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       state.activeInitials = btn.dataset.init
@@ -147,7 +160,6 @@ function attachHomeListeners() {
     })
   })
 
-  // Sort toggle
   document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       state.sortBy = btn.dataset.sort
@@ -155,7 +167,6 @@ function attachHomeListeners() {
     })
   })
 
-  // Recipe cards
   document.querySelectorAll('.recipe-card').forEach(card => {
     card.addEventListener('click', () => {
       const id = card.dataset.id
@@ -177,7 +188,6 @@ async function loadRecipes() {
       .from('recipes')
       .select('*')
       .order('created_at', { ascending: false })
-
     if (error) throw error
     state.recipes = data || []
   } catch (err) {
@@ -195,13 +205,34 @@ async function addRecipe(recipe) {
     .insert([recipe])
     .select()
     .single()
-
   if (error) throw error
-
-  // Prepend new recipe to local state
   state.recipes.unshift(data)
 }
 
+async function updateRecipe(id, updates) {
+  const { data, error } = await supabase
+    .from('recipes')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  // Update in local state
+  const idx = state.recipes.findIndex(r => r.id === id)
+  if (idx !== -1) state.recipes[idx] = data
+  state.currentRecipe = data
+}
+
+async function deleteRecipe(id) {
+  const { error } = await supabase
+    .from('recipes')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+  state.recipes = state.recipes.filter(r => r.id !== id)
+  state.currentRecipe = null
+}
+
 // ── Boot ───────────────────────────────────────────────────────────────────
-render() // Show loading state immediately
+render()
 loadRecipes()

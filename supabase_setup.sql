@@ -26,3 +26,12 @@ create policy "Anyone can read recipes"
 create policy "Anyone can add recipes"
   on recipes for insert
   with check (true);
+
+create policy "Anyone can update recipes"
+  on recipes for update
+  using (true)
+  with check (true);
+
+create policy "Anyone can delete recipes"
+  on recipes for delete
+  using (true);
