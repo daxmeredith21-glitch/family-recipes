@@ -4,42 +4,31 @@ on:
   workflow_dispatch:
     inputs:
       endpoint:
-        description: 'Which seed to run: seed (initial 50) or seed_v2 (remaining recipes)'
+        description: 'Which seed to run'
         required: true
-        default: 'seed_v2'
+        default: 'seed_v3'
         type: choice
         options:
           - seed
           - seed_v2
-          - both
+          - seed_v3
 
 jobs:
   seed:
     runs-on: ubuntu-latest
     steps:
-      - name: Run seed
+      - name: Run seed endpoint
         run: |
           ENDPOINT="${{ github.event.inputs.endpoint }}"
-
-          run_endpoint() {
-            local ep=$1
-            echo "Calling /api/$ep..."
-            response=$(curl -s -w "\n%{http_code}" -X POST "https://project-f8nhl.vercel.app/api/$ep" \
-              -H "x-seed-secret: ${{ secrets.SEED_SECRET }}" \
-              -H "Content-Type: application/json")
-            http_code=$(echo "$response" | tail -n1)
-            body=$(echo "$response" | sed '$d')
-            echo "Response: $body"
-            echo "HTTP Status: $http_code"
-            if [ "$http_code" -ne 200 ]; then
-              echo "FAILED: $ep returned $http_code"
-              exit 1
-            fi
-          }
-
-          if [ "$ENDPOINT" = "both" ]; then
-            run_endpoint "seed"
-            run_endpoint "seed_v2"
-          else
-            run_endpoint "$ENDPOINT"
+          echo "Calling /api/$ENDPOINT..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "https://project-f8nhl.vercel.app/api/$ENDPOINT" \
+            -H "x-seed-secret: ${{ secrets.SEED_SECRET }}" \
+            -H "Content-Type: application/json")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+          if [ "$http_code" -ne 200 ]; then
+            echo "FAILED: $ENDPOINT returned $http_code"
+            exit 1
           fi
