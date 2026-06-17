@@ -468,6 +468,44 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
 }
 
 /* ── ADD FORM ── */
+.add-tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--warm);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.add-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.add-tab.active {
+  background: var(--card);
+  color: var(--navy);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.add-tab-content { display: block; }
+
+@keyframes spin-icon { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin-icon 0.8s linear infinite; }
+
 .add-header { margin-bottom: 22px; }
 .add-header h2 { font-size: 24px; color: var(--navy); margin-bottom: 4px; }
 .add-header p { font-size: 14px; color: var(--muted); }
