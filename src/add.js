@@ -146,34 +146,14 @@ async function parseRecipe() {
   btn.innerHTML = '<i class="ti ti-loader-2 spin"></i> Identifying ingredients &amp; steps...'
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/parse-recipe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: `You are a recipe parser. Extract structured recipe data from raw text.
-Return ONLY valid JSON with no markdown, no backticks, no explanation. Use this exact shape:
-{
-  "title": "Recipe name",
-  "category": "one of: Chicken, Beef & Pork, Seafood, Pasta, Soups & Stews, Sides, Breakfast, Desserts, Appetizers & Snacks, Sauces & Dips, Other",
-  "serves": "e.g. Serves 4",
-  "time": "e.g. 30 min",
-  "ingredients": [{"amount": "2 cups", "name": "all-purpose flour"}, ...],
-  "steps": ["Step 1 written as a full sentence including amounts.", "Step 2...", ...],
-  "notes": "any tips or notes, or empty string"
-}
-For ingredients, always separate the amount from the ingredient name.
-For steps, write each as a complete sentence and include any amounts/measurements inline in the step text.`,
-        messages: [{ role: 'user', content: `Parse this recipe:\n\n${raw}` }],
-      }),
+      body: JSON.stringify({ text: raw }),
     })
 
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.error?.message || 'API error')
-
-    const text = data.content?.[0]?.text || ''
-    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+    const parsed = await response.json()
+    if (!response.ok) throw new Error(parsed.error || 'Parse failed')
 
     // Switch to manual tab and populate
     document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'))
