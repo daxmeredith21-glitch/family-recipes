@@ -223,7 +223,7 @@ async function parseRecipe() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
   } catch (err) {
-    errorEl.textContent = 'Could not parse the recipe. Try tidying up the text a little and paste again.'
+    errorEl.textContent = `Could not parse the recipe: ${err.message}. Try again or use the manual form.`
     errorEl.style.display = 'block'
     console.error(err)
   } finally {
