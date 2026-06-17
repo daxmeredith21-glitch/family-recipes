@@ -98,28 +98,38 @@ function addIngField() {
   div.className = 'ing-row'
   div.id = id
   div.innerHTML = `
+    <div class="ing-bullet">•</div>
     <input class="form-input amount-input" placeholder="Amount" aria-label="Amount">
     <input class="form-input name-input" placeholder="Ingredient" aria-label="Ingredient name">
     <button class="remove-btn" aria-label="Remove ingredient">✕</button>
   `
-  div.querySelector('.remove-btn').addEventListener('click', () => div.remove())
+  div.querySelector('.remove-btn').addEventListener('click', () => { div.remove() })
   document.getElementById('ingFields').appendChild(div)
 }
 
 function addStepField() {
   stepCount++
-  const num = stepCount
-  const id = 'step_' + num
+  const id = 'step_' + stepCount
   const div = document.createElement('div')
   div.className = 'step-row'
   div.id = id
   div.innerHTML = `
-    <div class="step-badge">${num}</div>
-    <textarea class="form-input" rows="2" placeholder="Describe this step — include amounts (e.g. 'Add 2 tbsp butter and stir until...')" aria-label="Step ${num}"></textarea>
+    <div class="step-badge">${document.querySelectorAll('#stepFields .step-row').length + 1}</div>
+    <textarea class="form-input" rows="2" placeholder="Describe this step — include amounts (e.g. 'Add 2 tbsp butter and stir until...')" aria-label="Step"></textarea>
     <button class="remove-btn" aria-label="Remove step">✕</button>
   `
-  div.querySelector('.remove-btn').addEventListener('click', () => div.remove())
+  div.querySelector('.remove-btn').addEventListener('click', () => {
+    div.remove()
+    renumberSteps('#stepFields')
+  })
   document.getElementById('stepFields').appendChild(div)
+}
+
+function renumberSteps(containerSelector) {
+  document.querySelectorAll(`${containerSelector} .step-row`).forEach((row, i) => {
+    const badge = row.querySelector('.step-badge')
+    if (badge) badge.textContent = i + 1
+  })
 }
 
 async function handleSubmit(onSubmit) {

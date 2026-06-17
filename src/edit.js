@@ -50,6 +50,7 @@ export function renderEdit(recipe) {
       <div id="ingFields">
         ${(recipe.ingredients || []).map((ing, i) => `
           <div class="ing-row" id="ing_${i}">
+            <div class="ing-bullet">•</div>
             <input class="form-input amount-input" placeholder="Amount" value="${esc(ing.amount || '')}" aria-label="Amount">
             <input class="form-input name-input" placeholder="Ingredient" value="${esc(ing.name || '')}" aria-label="Ingredient name">
             <button class="remove-btn" data-remove="ing_${i}" aria-label="Remove ingredient">✕</button>
@@ -96,6 +97,13 @@ function esc(str) {
 let ingCount = 0
 let stepCount = 0
 
+function renumberSteps(containerSelector) {
+  document.querySelectorAll(`${containerSelector} .step-row`).forEach((row, i) => {
+    const badge = row.querySelector('.step-badge')
+    if (badge) badge.textContent = i + 1
+  })
+}
+
 export function initEditForm(recipe, onSave, onDelete, onBack) {
   ingCount = (recipe.ingredients || []).length
   stepCount = (recipe.steps || []).length
@@ -104,6 +112,7 @@ export function initEditForm(recipe, onSave, onDelete, onBack) {
   document.querySelectorAll('[data-remove]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById(btn.dataset.remove)?.remove()
+      renumberSteps('#stepFields')
     })
   })
 
@@ -114,6 +123,7 @@ export function initEditForm(recipe, onSave, onDelete, onBack) {
     div.className = 'ing-row'
     div.id = id
     div.innerHTML = `
+      <div class="ing-bullet">•</div>
       <input class="form-input amount-input" placeholder="Amount" aria-label="Amount">
       <input class="form-input name-input" placeholder="Ingredient" aria-label="Ingredient name">
       <button class="remove-btn" aria-label="Remove ingredient">✕</button>
@@ -134,7 +144,10 @@ export function initEditForm(recipe, onSave, onDelete, onBack) {
       <textarea class="form-input" rows="2" placeholder="Describe this step..." aria-label="Step ${num}"></textarea>
       <button class="remove-btn" aria-label="Remove step">✕</button>
     `
-    div.querySelector('.remove-btn').addEventListener('click', () => div.remove())
+    div.querySelector('.remove-btn').addEventListener('click', () => {
+      div.remove()
+      renumberSteps('#stepFields')
+    })
     document.getElementById('stepFields').appendChild(div)
   })
 

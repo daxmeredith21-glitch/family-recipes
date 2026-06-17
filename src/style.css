@@ -513,6 +513,17 @@ select.form-input { cursor: pointer; background-image: url("data:image/svg+xml,%
   align-items: flex-start;
 }
 
+.ing-bullet {
+  font-size: 20px;
+  color: var(--gold);
+  font-weight: 700;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  margin-top: 10px;
+  line-height: 1;
+}
+
 .ing-row .amount-input {
   width: 100px;
   flex-shrink: 0;
