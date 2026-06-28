@@ -1,0 +1,35 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Run every Monday and Friday at 8am UTC (3am ET)
+    - cron: '0 8 * * 1'
+    - cron: '0 8 * * 5'
+  workflow_dispatch: # Allow manual trigger too
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to prevent pausing
+        run: |
+          echo "Pinging Supabase..."
+          response=$(curl -s -w "\n%{http_code}" \
+            "https://osyfzegbkopuccidawzg.supabase.co/rest/v1/recipes?select=count&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Supabase is active and healthy"
+          elif [ "$http_code" -eq 503 ] || [ "$http_code" -eq 0 ]; then
+            echo "⚠️ Supabase appears to be paused — please restore at supabase.com"
+            exit 1
+          else
+            echo "⚠️ Unexpected status: $http_code"
+            exit 1
+          fi
