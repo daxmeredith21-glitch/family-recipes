@@ -1,7 +1,4 @@
 {
-  "functions": {
-    "api/*.cjs": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "buildCommand": "vite build",
+  "outputDirectory": "dist"
 }
