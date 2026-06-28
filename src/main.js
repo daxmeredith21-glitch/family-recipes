@@ -1,7 +1,7 @@
 import './style.css'
 import { supabase } from './supabase.js'
 import { renderHome } from './home.js'
-import { renderDetail } from './detail.js'
+import { renderDetail, initDetailListeners } from './detail.js'
 import { renderAdd, initAddForm } from './add.js'
 import { renderEdit, initEditForm } from './edit.js'
 
@@ -106,6 +106,9 @@ function attachListeners() {
     render()
     window.scrollTo(0, 0)
   })
+  if (state.screen === 'detail' && state.currentRecipe) {
+    initDetailListeners(state.currentRecipe)
+  }
 
   // Edit
   if (state.screen === 'edit' && state.currentRecipe) {

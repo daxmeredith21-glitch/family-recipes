@@ -467,6 +467,57 @@ h1, h2, h3, .serif { font-family: 'Lora', serif; }
   border-left: 3px solid var(--gold);
 }
 
+.shop-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.shop-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: all 0.15s;
+}
+
+.instacart-btn {
+  background: #003D29;
+  color: #fff;
+}
+
+.instacart-btn:hover { background: #005a3d; }
+
+.copy-btn {
+  background: var(--warm);
+  color: var(--navy);
+  border: 1.5px solid var(--border);
+}
+
+.copy-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+.copy-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #e8f5e9;
+  border-radius: 8px;
+}
+
 /* ── ADD FORM ── */
 .add-tab-row {
   display: flex;
