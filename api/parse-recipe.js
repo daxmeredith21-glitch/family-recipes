@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (!text) return res.status(400).json({ error: 'No text provided' })
 
   if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured in Vercel environment variables' })
+    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' })
   }
 
   const prompt = `You are a recipe parser. Extract structured recipe data from the text below.
@@ -24,7 +24,7 @@ Return ONLY valid JSON with no markdown, no backticks, no explanation. Use this 
   "notes": "any tips or notes, or empty string"
 }
 For ingredients, always separate the amount from the ingredient name.
-For steps, write each as a complete sentence and include any amounts/measurements inline in the step text.
+For steps, write each as a complete sentence and include any amounts/measurements inline.
 
 Recipe to parse:
 ${text}`
@@ -43,9 +43,7 @@ ${text}`
     )
 
     const data = await response.json()
-    if (!response.ok) {
-      throw new Error(data.error?.message || `Gemini API error ${response.status}`)
-    }
+    if (!response.ok) throw new Error(data.error?.message || `Gemini API error ${response.status}`)
 
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
     const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim())

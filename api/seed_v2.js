@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+const { createClient } = require('@supabase/supabase-js')
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -851,7 +851,7 @@ const recipes = [
   },
 ]
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   if (req.headers['x-seed-secret'] !== process.env.SEED_SECRET) return res.status(401).json({ error: 'Unauthorized' })
 
