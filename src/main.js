@@ -4,10 +4,13 @@ import { renderHome } from './home.js'
 import { renderDetail, initDetailListeners } from './detail.js'
 import { renderAdd, initAddForm } from './add.js'
 import { renderEdit, initEditForm } from './edit.js'
+import { renderKayakList } from './kayak-list.js'
+import { renderKayakAdd } from './kayak-add.js'
+import { renderKayakDetail } from './kayak-detail.js'
 
 // ── State ──────────────────────────────────────────────────────────────────
 const state = {
-  screen: 'home',       // 'home' | 'detail' | 'add' | 'edit'
+  screen: 'home',       // 'home' | 'detail' | 'add' | 'edit' | 'kayak-list' | 'kayak-add' | 'kayak-detail'
   recipes: [],
   loading: true,
   activeCategory: 'All',
@@ -15,6 +18,7 @@ const state = {
   sortBy: 'recent',
   searchQuery: '',
   currentRecipe: null,
+  currentKayakTripId: null,
 }
 
 const app = document.getElementById('app')
@@ -28,6 +32,28 @@ function render() {
     </main>
   `
   attachListeners()
+
+  // Kayak screens are async and take a container directly
+  if (state.screen === 'kayak-list') {
+    renderKayakList(document.getElementById('mainContent'), (screen, id) => {
+      state.screen = screen
+      if (id) state.currentKayakTripId = id
+      render()
+      window.scrollTo(0, 0)
+    })
+  }
+  if (state.screen === 'kayak-add') {
+    renderKayakAdd(document.getElementById('mainContent'), () => {
+      state.screen = 'kayak-list'
+      render()
+    })
+  }
+  if (state.screen === 'kayak-detail' && state.currentKayakTripId) {
+    renderKayakDetail(document.getElementById('mainContent'), state.currentKayakTripId, () => {
+      state.screen = 'kayak-list'
+      render()
+    })
+  }
 }
 
 function renderHomeContent() {
@@ -44,18 +70,25 @@ function renderHomeContent() {
 }
 
 function renderNav() {
+  const isKayak = state.screen.startsWith('kayak')
   return `
     <nav class="nav">
       <div class="nav-title">Family <span>Recipes</span></div>
       <div class="nav-actions">
-        <button class="nav-btn ${state.screen !== 'add' ? 'active' : ''}" id="navBrowse">Browse</button>
+        <button class="nav-btn ${!isKayak && state.screen !== 'add' ? 'active' : ''}" id="navBrowse">Browse</button>
         <button class="nav-btn ${state.screen === 'add' ? 'active' : ''}" id="navAdd">+ Add</button>
+        <button class="nav-btn ${isKayak ? 'active' : ''}" id="navKayak">🛶 Kayak</button>
       </div>
     </nav>
   `
 }
 
 function renderScreen() {
+  // Kayak screens render themselves asynchronously into the container after this returns
+  if (state.screen.startsWith('kayak')) {
+    return `<div class="loading"><div class="spinner"></div>Loading…</div>`
+  }
+
   if (state.loading) {
     return `<div class="loading"><div class="spinner"></div>Loading recipes...</div>`
   }
@@ -90,6 +123,12 @@ function attachListeners() {
 
   document.getElementById('navAdd')?.addEventListener('click', () => {
     state.screen = 'add'
+    render()
+    window.scrollTo(0, 0)
+  })
+
+  document.getElementById('navKayak')?.addEventListener('click', () => {
+    state.screen = 'kayak-list'
     render()
     window.scrollTo(0, 0)
   })
@@ -220,7 +259,6 @@ async function updateRecipe(id, updates) {
     .select()
     .single()
   if (error) throw error
-  // Update in local state
   const idx = state.recipes.findIndex(r => r.id === id)
   if (idx !== -1) state.recipes[idx] = data
   state.currentRecipe = data
