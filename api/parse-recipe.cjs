@@ -12,70 +12,71 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'GEMINI_API_KEY not configured' })
   }
 
-  const prompt = `You are a recipe parser. Extract structured recipe data from the text below.
-You MUST return ONLY a raw JSON object. No markdown. No backticks. No explanation. No preamble.
-Start your response with { and end with }.
+  const systemPrompt = [
+    'You are a recipe parser. Extract structured recipe data from the user text.',
+    'Return ONLY a valid JSON object. No markdown. No backticks. No explanation.',
+    'The JSON must have these exact keys:',
+    '  title (string)',
+    '  category (one of: Chicken, Beef & Pork, Seafood, Pasta, Soups & Stews, Sides, Breakfast, Desserts, Appetizers & Snacks, Sauces & Dips, Other)',
+    '  serves (string, e.g. "Serves 4" or "")',
+    '  time (string, e.g. "2 hours" or "")',
+    '  ingredients (array of objects, each with "amount" string and "name" string)',
+    '  steps (array of strings, each a complete sentence with measurements included inline)',
+    '  notes (string, any tips or empty string)',
+    'Separate ingredient amounts from ingredient names.',
+    'If a value is unknown use an empty string or empty array.',
+  ].join('\n')
 
-Use this exact JSON shape:
-{
-  "title": "Recipe name",
-  "category": "one of: Chicken, Beef & Pork, Seafood, Pasta, Soups & Stews, Sides, Breakfast, Desserts, Appetizers & Snacks, Sauces & Dips, Other",
-  "serves": "e.g. Serves 4",
-  "time": "e.g. 30 min",
-  "ingredients": [{"amount": "2 cups", "name": "all-purpose flour"}],
-  "steps": ["Step 1 written as a full sentence.", "Step 2..."],
-  "notes": ""
-}
-
-Rules:
-- ingredients: separate the amount from the ingredient name. If no amount, use empty string for amount.
-- steps: each step is a complete sentence. Include measurements inline in the step text.
-- If a field is unknown, use an empty string.
-- Return valid JSON only.
-
-Recipe text:
-${text}`
+  const body = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ parts: [{ text: text }] }],
+    generationConfig: {
+      temperature: 0.1,
+      response_mime_type: 'application/json',
+    },
+  }
 
   try {
-    const response = await fetch(
+    const apiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: 'application/json',
-          },
-        }),
+        body: JSON.stringify(body),
       }
     )
 
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.error?.message || `Gemini API error ${response.status}`)
+    const data = await apiRes.json()
 
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-    if (!raw) throw new Error('Gemini returned an empty response')
-
-    // Clean up the response aggressively before parsing
-    const cleaned = raw
-      .replace(/```json/gi, '')
-      .replace(/```/g, '')
-      .trim()
-
-    // Find the JSON object even if there's extra text around it
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON object found in response')
-
-    const parsed = JSON.parse(jsonMatch[0])
-
-    // Validate we got something useful
-    if (!parsed.title && !parsed.ingredients) {
-      throw new Error('Could not identify recipe structure in the pasted text')
+    if (!apiRes.ok) {
+      const msg = data?.error?.message || `Gemini API error ${apiRes.status}`
+      console.error('Gemini error:', msg)
+      return res.status(500).json({ error: msg })
     }
 
+    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    console.log('Gemini raw response (first 500):', raw.slice(0, 500))
+
+    if (!raw) {
+      const finishReason = data?.candidates?.[0]?.finishReason || 'unknown'
+      return res.status(500).json({ error: `Gemini returned empty response. Finish reason: ${finishReason}` })
+    }
+
+    // Strip any markdown fences if present
+    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim()
+
+    // Extract JSON object — find outermost { }
+    const start = cleaned.indexOf('{')
+    const end = cleaned.lastIndexOf('}')
+    if (start === -1 || end === -1) {
+      return res.status(500).json({ error: `Response was not JSON. Got: ${cleaned.slice(0, 200)}` })
+    }
+
+    const jsonStr = cleaned.slice(start, end + 1)
+    const parsed = JSON.parse(jsonStr)
+
     return res.status(200).json(parsed)
+
   } catch (err) {
     console.error('Parse error:', err.message)
     return res.status(500).json({ error: err.message || 'Unknown error' })
