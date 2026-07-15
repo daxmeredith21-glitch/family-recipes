@@ -152,8 +152,16 @@ async function parseRecipe() {
       body: JSON.stringify({ text: raw }),
     })
 
-    const parsed = await response.json()
-    if (!response.ok) throw new Error(parsed.error || 'Parse failed')
+    // Get raw text first so we can debug non-JSON responses
+    const responseText = await response.text()
+    let parsed
+    try {
+      parsed = JSON.parse(responseText)
+    } catch (jsonErr) {
+      throw new Error(`Server returned invalid response (HTTP ${response.status}): ${responseText.slice(0, 200)}`)
+    }
+
+    if (!response.ok) throw new Error(parsed.error || `Server error ${response.status}`)
 
     // Switch to manual tab and populate
     document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'))
