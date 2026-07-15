@@ -1,0 +1,26 @@
+name: Test API Health
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test health endpoint
+        run: |
+          response=$(curl -s -w "\n%{http_code}" "https://project-f8nhl.vercel.app/api/health")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Health response: $body"
+          echo "HTTP Status: $http_code"
+
+      - name: Test parse-recipe endpoint
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST "https://project-f8nhl.vercel.app/api/parse-recipe" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"Simple test recipe. Ingredients: 1 cup flour. Steps: Mix flour with water."}')
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Parse response: $body"
+          echo "HTTP Status: $http_code"
