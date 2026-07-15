@@ -13,20 +13,27 @@ module.exports = async function handler(req, res) {
   }
 
   const prompt = `You are a recipe parser. Extract structured recipe data from the text below.
-Return ONLY valid JSON with no markdown, no backticks, no explanation. Use this exact shape:
+You MUST return ONLY a raw JSON object. No markdown. No backticks. No explanation. No preamble.
+Start your response with { and end with }.
+
+Use this exact JSON shape:
 {
   "title": "Recipe name",
   "category": "one of: Chicken, Beef & Pork, Seafood, Pasta, Soups & Stews, Sides, Breakfast, Desserts, Appetizers & Snacks, Sauces & Dips, Other",
   "serves": "e.g. Serves 4",
   "time": "e.g. 30 min",
-  "ingredients": [{"amount": "2 cups", "name": "all-purpose flour"}, ...],
-  "steps": ["Step 1 written as a full sentence including amounts.", "Step 2...", ...],
-  "notes": "any tips or notes, or empty string"
+  "ingredients": [{"amount": "2 cups", "name": "all-purpose flour"}],
+  "steps": ["Step 1 written as a full sentence.", "Step 2..."],
+  "notes": ""
 }
-For ingredients, always separate the amount from the ingredient name.
-For steps, write each as a complete sentence and include any amounts/measurements inline.
 
-Recipe to parse:
+Rules:
+- ingredients: separate the amount from the ingredient name. If no amount, use empty string for amount.
+- steps: each step is a complete sentence. Include measurements inline in the step text.
+- If a field is unknown, use an empty string.
+- Return valid JSON only.
+
+Recipe text:
 ${text}`
 
   try {
@@ -37,7 +44,10 @@ ${text}`
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1 },
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: 'application/json',
+          },
         }),
       }
     )
@@ -46,10 +56,28 @@ ${text}`
     if (!response.ok) throw new Error(data.error?.message || `Gemini API error ${response.status}`)
 
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim())
+    if (!raw) throw new Error('Gemini returned an empty response')
+
+    // Clean up the response aggressively before parsing
+    const cleaned = raw
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim()
+
+    // Find the JSON object even if there's extra text around it
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('No JSON object found in response')
+
+    const parsed = JSON.parse(jsonMatch[0])
+
+    // Validate we got something useful
+    if (!parsed.title && !parsed.ingredients) {
+      throw new Error('Could not identify recipe structure in the pasted text')
+    }
+
     return res.status(200).json(parsed)
   } catch (err) {
-    console.error('Parse error:', err)
+    console.error('Parse error:', err.message)
     return res.status(500).json({ error: err.message || 'Unknown error' })
   }
 }
