@@ -9,6 +9,7 @@ export const CATEGORIES = [
   'Desserts',
   'Appetizers & Snacks',
   'Sauces & Dips',
+  'Vegetarian',
   'Other',
 ]
 
@@ -23,6 +24,7 @@ export const CAT_ICONS = {
   'Desserts': '🍰',
   'Appetizers & Snacks': '🧀',
   'Sauces & Dips': '🫙',
+  'Vegetarian': '🥦',
   'Other': '🍴',
 }
 
@@ -37,5 +39,6 @@ export const CAT_COLORS = {
   'Desserts': '#FCE4EC',
   'Appetizers & Snacks': '#E0F2F1',
   'Sauces & Dips': '#FFF9C4',
+  'Vegetarian': '#F1F8E9',
   'Other': '#F5F5F5',
 }
