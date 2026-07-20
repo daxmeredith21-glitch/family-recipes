@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
     'Return ONLY a valid JSON object. No markdown. No backticks. No explanation.',
     'The JSON must have these exact keys:',
     '  title (string)',
-    '  category (one of: Chicken, Beef & Pork, Seafood, Pasta, Soups & Stews, Sides, Breakfast, Desserts, Appetizers & Snacks, Sauces & Dips, Other)',
+    '  category (one of: Chicken, Beef & Pork, Seafood, Pasta, Soups & Stews, Sides, Breakfast, Desserts, Appetizers & Snacks, Sauces & Dips, Vegetarian, Other)',
     '  serves (string, e.g. "Serves 4" or "")',
     '  time (string, e.g. "2 hours" or "")',
     '  ingredients (array of objects, each with "amount" string and "name" string)',
